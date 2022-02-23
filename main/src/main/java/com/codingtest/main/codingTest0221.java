@@ -1,3 +1,9 @@
+package com.codingtest.main;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+
 /* 신입사원 무지는 게시판 불량 이용자를 신고하고 처리 결과를 메일로 발송하는 시스템을 개발하려 합니다. 무지가 개발하려는 시스템은 다음과 같습니다.
 
 각 유저는 한 번에 한 명의 유저를 신고할 수 있습니다.
@@ -51,14 +57,49 @@ class Solution {
 /*  이용자 id : id_list
     피신고자 id : report
     정지 기준 : k */
-    public int[] solution(String[] id_list, String[] report, int k) {
-        int[] answer = {};
-        // 1. id_list 에서 꺼내온 id문자열 길이 체크
-        // 2. for문 돌려 report에서 indexOf하여 문자열 길이랑 비교, 문자열 길이보다 작으면 신고자, 크면 피신고자, -1이면 리포트에 없음
-        // 3. 신고자일 때를 먼저 찾기
-        // 4. 자신이 신고한 사람이 report에 있는지 indexOf로 체크하여 문자열 길이보다 클 때 그 이름을 임시배열에 저장, -1이면 리포트에 없음
-        // 5. 
+    
+    public static void main(String[] args){
+        String[] id_list = {"muji", "frodo", "seo", "hyunik"};
+        //3
+        String[] report = {"muji hyunik", "muji seo", "muji frodo", "frodo muji", "frodo seo", "frodo hyunik", "seo muji", "seo frodo", "seo hyunik", "hyunik frodo"};
+        int k = 2;
+        System.out.println(solution(id_list, report, k));
+    }
 
+    public static ArrayList<Integer> solution(String[] id_list, String[] report, int k) {
+        ArrayList<Integer> answer = new ArrayList<>();
+        Map<String, Integer> accuseds = new HashMap();
+        //중복신고 방지
+        String[] newReport = Arrays.stream(report).distinct().toArray(String[]::new);
+        
+        // 1. id_list에서 꺼낸 뒤 report 속 피신고자인지 확인하여 map에 저장 - key : id , val : 신고당한 횟수
+        for (String id : id_list) {
+            int count = 0;
+            for (String accused : newReport) {
+                if (accused.contains(id) && accused.indexOf(id)>1) { //report가 id를 포함하며, id가 첫번째에 나오는 것이 아닐 때 그 id는 피신고자.
+                    count ++;
+                }//end if
+                
+            }//end for
+            accuseds.put(id, count);
+        }//end for
+        System.out.println(accuseds);
+        
+        // 2. id_list를 돌려 report에서 신고자인지 확인하고, 신고한 id가 무엇인지 확인하여 map에서 값을 찾아 k와 비교하여 높으면 +1
+        for (String id : id_list) {
+            int count = 0;
+            for (String reporter : newReport) {
+                if (reporter.contains(id) && reporter.indexOf(id) == 0) { //report가 id를 포함하며, id가 첫번째에 나올 때 그 id는 신고자.
+                    String accused = reporter.substring(id.length()+1, reporter.length());
+                    //System.out.println(accused);
+                    int val = accuseds.get(accused).intValue();
+                    if (val >= k) {
+                        count ++;
+                    }
+                }// end if
+            }//end for
+            answer.add(count);
+        }//end for
         return answer;
     }
 }
