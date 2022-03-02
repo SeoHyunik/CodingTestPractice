@@ -52,7 +52,7 @@ id는 알파벳 소문자로만 이루어져 있습니다.
 자기 자신을 신고하는 경우는 없습니다.
 1 ≤ k ≤ 200, k는 자연수입니다.
 return 하는 배열은 id_list에 담긴 id 순서대로 각 유저가 받은 결과 메일 수를 담으면 됩니다. */
-class Solution {
+class Solution3 {
 
 /*  이용자 id : id_list
     피신고자 id : report
@@ -60,46 +60,58 @@ class Solution {
     
     public static void main(String[] args){
         String[] id_list = {"muji", "frodo", "seo", "hyunik"};
-        //3
         String[] report = {"muji hyunik", "muji seo", "muji frodo", "frodo muji", "frodo seo", "frodo hyunik", "seo muji", "seo frodo", "seo hyunik", 
-        "hyunik frodo", "hyunik frodo", "hyunik frodo", "muji frodo"};
+                            "hyunik frodo", "hyunik frodo", "hyunik frodo", "muji frodo"};
         int k = 2;
         System.out.println(solution(id_list, report, k));
     }
 
-    public static ArrayList<Integer> solution(String[] id_list, String[] report, int k) {
-        ArrayList<Integer> answer = new ArrayList<>();
-        Map<String, Integer> resultMap = new HashMap();
-        // 0. 중복신고 방지
-        String[] newReport = Arrays.stream(report).distinct().toArray(String[]::new);
-
-        // 1. id_list에서 꺼낸 뒤 report 속 피신고자인지 확인하여 map에 저장 - key : id , val : 신고당한 횟수
-        for (String id : id_list) {
-            int count = 0;
-            for (String accused : newReport) {
-                if (accused.contains(id) && accused.indexOf(id)>1) { //report가 id를 포함하며, id가 첫번째에 나오는 것이 아닐 때 그 id는 피신고자.
-                    count ++;
-                }//end if
-            }//end for
-            resultMap.put(id, count);
-        }//end for
-        System.out.println(resultMap);
+    public static ArrayList<Long> solution(String[] id_list, String[] report, int k) {
+        ArrayList<Long> answer = new ArrayList<>();
         
-        // 2. id_list를 돌려 report에서 신고자인지 확인하고, 신고한 id가 무엇인지 확인하여 map에서 값을 찾아 k와 비교하여 높으면 +1
-        for (String id : id_list) {
-            int count = 0;
-            for (String reporter : newReport) {
-                if (reporter.contains(id) && reporter.indexOf(id) == 0) { //report가 id를 포함하며, id가 첫번째에 나올 때 그 id는 신고자.
-                    String accused = reporter.substring(id.length()+1, reporter.length());
-                    //System.out.println(accused);
-                    int val = resultMap.get(accused).intValue();
-                    if (val >= k) {
-                        count ++;
-                    }
-                }// end if
-            }//end for
-            answer.add(count);
+        // 1. id_list에서 id를 꺼내 map으로 변형하여 우선 val값 0으로 설정한다.
+        Map<String, Long> resultMap = new HashMap();
+        for(String id : id_list){
+            resultMap.put(id, 0L);
+        }
+        
+        Map<String, ArrayList<String>> reportMap = new HashMap();
+        for(String data : report){
+            // 2. report를 반복하여 data를 꺼내 " "를 기준으로 분리하여 배열로 만들어 준다.
+            String[] splitedDataArr = data.split(" ");
+            
+            // 3. reportMap에 피신고자의 이름으로 된 key 값이 있을 때
+            if(reportMap.containsKey(splitedDataArr[1])){
+                // 피신고자의 이름으로 된 key값으로 찾은 reportMap의 value값이 신고자의 이름과 중복되지 않는다면,
+                if(!reportMap.get(splitedDataArr[1]).contains(splitedDataArr[0])){
+                    // 해당 피신고자 이름의 map override하여 reporterArr를 업데이트 한다.
+                    reportMap.get(splitedDataArr[1]).add(splitedDataArr[0]);
+                }
+            }else{ // reportMap에 피신고자의 이름으로 된 key 값이 없다면
+                ArrayList<String> reporterArr = new ArrayList<>();
+                // reporter명이 담긴 배열에 신고자의 이름을 넣어주고,
+                reporterArr.add(splitedDataArr[0]);
+                // reportMap에 피신고자의 이름으로 key를 넣고 신고자 이름이 담긴 배열을 넣어준다. 
+                reportMap.put(splitedDataArr[1], reporterArr);
+            }//end else
         }//end for
+
+        // 4. key만으로 for문을 돌려 딸려나온 reporterArr의 길이(신고자 수)를 k값과 비교한다.
+        for(String key : reportMap.keySet()){
+            if(reportMap.get(key).size()>=k){
+                // k보다 크다면 메세지를 보내야 하기 때문에 id들을 뽑아와
+                for(String id : reportMap.get(key)){
+                    // 초기에 만들어 둔 빈값의 resultMap에 id값에 맞춰 +1을 해준다. ==> 반복문이 돌면서 신고한 만큼 추가됨.
+                    resultMap.put(id, resultMap.get(id)+1);
+                }
+            }//end if
+        }//end for
+
+        // 5. for문을 돌려 id를 key로 검색하여 담겨있는 신고 응답 건수를 뽑아 답안 배열에 넣는다.
+        for(String id : id_list){
+            answer.add(resultMap.get(id));
+        }
+
         return answer;
     }
 }
